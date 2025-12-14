@@ -12,6 +12,16 @@ const badgeVariants = cva(
         secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        // Status Badges
+        pending: "border-warning/30 bg-warning/15 text-warning",
+        review: "border-info/30 bg-info/15 text-info",
+        resolved: "border-success/30 bg-success/15 text-success",
+        // Category Badges
+        road: "border-orange-500/30 bg-orange-500/15 text-orange-600",
+        garbage: "border-emerald-500/30 bg-emerald-500/15 text-emerald-600",
+        water: "border-blue-500/30 bg-blue-500/15 text-blue-600",
+        electricity: "border-yellow-500/30 bg-yellow-500/15 text-yellow-600",
+        safety: "border-red-500/30 bg-red-500/15 text-red-600",
       },
     },
     defaultVariants: {
