@@ -144,25 +144,34 @@
   /* Glassmorphism Card */
   .glass-card {
     @apply relative overflow-hidden rounded-2xl;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.95) 100%);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid hsl(var(--border) / 0.5);
+    box-shadow: 0 4px 20px hsl(var(--foreground) / 0.05);
+  }
+
+  .dark .glass-card {
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.9) 100%);
+    border: 1px solid hsl(var(--border) / 0.3);
   }
 
   .glass-card-dark {
     @apply relative overflow-hidden rounded-2xl;
-    background: linear-gradient(135deg, rgba(20, 30, 40, 0.8), rgba(20, 30, 40, 0.4));
+    background: linear-gradient(135deg, hsl(200, 40%, 8%, 0.9), hsl(200, 40%, 8%, 0.7));
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid hsl(var(--border) / 0.2);
   }
 
   /* Gradient Text */
   .gradient-text {
-    @apply bg-clip-text text-transparent;
-    background-image: var(--gradient-primary);
+    @apply bg-clip-text text-transparent font-bold;
+    background-image: linear-gradient(135deg, hsl(175, 70%, 30%) 0%, hsl(200, 75%, 35%) 100%);
+  }
+
+  .dark .gradient-text {
+    background-image: linear-gradient(135deg, hsl(175, 65%, 50%) 0%, hsl(200, 70%, 55%) 100%);
   }
 
   .gradient-text-accent {
@@ -207,13 +216,22 @@
   /* Animated Background */
   .animated-bg {
     background: linear-gradient(-45deg, 
-      hsl(175, 40%, 95%), 
-      hsl(200, 35%, 96%), 
-      hsl(25, 50%, 96%), 
-      hsl(175, 35%, 94%)
+      hsl(var(--background)), 
+      hsl(175, 25%, 96%), 
+      hsl(25, 30%, 97%), 
+      hsl(var(--background))
     );
     background-size: 400% 400%;
     animation: gradient-shift 15s ease infinite;
+  }
+
+  .dark .animated-bg {
+    background: linear-gradient(-45deg, 
+      hsl(var(--background)), 
+      hsl(175, 30%, 8%), 
+      hsl(200, 30%, 10%), 
+      hsl(var(--background))
+    );
   }
 
   @keyframes gradient-shift {
