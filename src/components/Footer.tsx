@@ -109,7 +109,6 @@ const Footer = () => {
                 className="text-center"
               >
                 <p className="font-medium text-sm">{member.name}</p>
-                <p className="text-xs opacity-60">{member.role}</p>
               </motion.div>
             ))}
           </div>
