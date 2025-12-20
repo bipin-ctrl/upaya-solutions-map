@@ -117,7 +117,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="py-6 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs opacity-60">
-            © 2024 Upaya. Young Tech Enthusiasts building civic solutions for Nepal.
+            © 2024 NSS Computer Project.
           </p>
           <p className="text-xs opacity-60 flex items-center gap-1">
             Made with <Heart className="w-3 h-3 text-red-400 fill-red-400" /> in Nepal 🇳🇵
