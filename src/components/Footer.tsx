@@ -6,6 +6,7 @@ const Footer = () => {
     { name: 'Bipin Gaire', role: 'Lead Developer' },
     { name: 'Nehal', role: 'Frontend' },
     { name: 'Gaurab', role: 'Backend' },
+    { name: 'Gaurav', role: 'Developer' },
     { name: 'Prithak', role: 'UI/UX' },
     { name: 'Ansuman', role: 'Research' },
   ];
