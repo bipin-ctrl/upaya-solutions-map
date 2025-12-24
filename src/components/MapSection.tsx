@@ -1,10 +1,47 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { mockIssues, categoryConfig, statusConfig } from '@/data/issues';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { MapPin, Layers, ExternalLink } from 'lucide-react';
+import { MapPin, Layers } from 'lucide-react';
+
+// Fix for default marker icons in Leaflet with Vite
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
+// Custom marker icons for each category
+const createCategoryIcon = (category: string) => {
+  const colors: Record<string, string> = {
+    road: '#f97316',
+    garbage: '#10b981',
+    water: '#3b82f6',
+    electricity: '#eab308',
+    safety: '#ef4444',
+  };
+  
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="
+      background-color: ${colors[category] || '#3b82f6'};
+      width: 30px;
+      height: 30px;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    "></div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 30],
+    popupAnchor: [0, -30],
+  });
+};
 
 const MapSection = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -14,6 +51,9 @@ const MapSection = () => {
     : mockIssues;
 
   const categories = Object.entries(categoryConfig);
+
+  // Kathmandu center coordinates
+  const kathmanduCenter: [number, number] = [27.7172, 85.3240];
 
   return (
     <section id="map" className="py-20 bg-secondary/30">
@@ -32,7 +72,7 @@ const MapSection = () => {
             Visualize Urban Problems
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Explore reported issues across Kathmandu Valley. Click on locations to view details 
+            Explore reported issues across Kathmandu Valley. Click on markers to view details 
             and track resolution progress.
           </p>
         </motion.div>
@@ -68,90 +108,73 @@ const MapSection = () => {
           ))}
         </motion.div>
 
-        {/* Map Placeholder with Issue Grid */}
+        {/* Interactive Map */}
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
-          className="relative"
+          className="relative rounded-2xl overflow-hidden shadow-xl border border-border"
         >
-          {/* Map Background */}
-          <div className="relative rounded-2xl overflow-hidden shadow-xl border border-border bg-gradient-to-br from-primary/5 via-secondary to-accent/5" style={{ minHeight: '500px' }}>
-            {/* Decorative Grid Pattern */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="w-full h-full" style={{
-                backgroundImage: `
-                  linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)
-                `,
-                backgroundSize: '40px 40px',
-              }} />
-            </div>
+          {/* Issue Count Badge */}
+          <div className="absolute top-4 left-4 z-[1000] glass-card px-4 py-2 rounded-full">
+            <p className="text-sm font-medium">
+              <span className="text-primary font-bold">{filteredIssues.length}</span> issues in Kathmandu Valley
+            </p>
+          </div>
 
-            {/* Header Badge */}
-            <div className="absolute top-4 left-4 z-10 glass-card px-4 py-2 rounded-full">
-              <p className="text-sm font-medium">
-                <span className="text-primary font-bold">{filteredIssues.length}</span> issues in Kathmandu Valley
-              </p>
-            </div>
+          {/* Leaflet Map */}
+          <MapContainer
+            center={kathmanduCenter}
+            zoom={13}
+            scrollWheelZoom={true}
+            style={{ height: '500px', width: '100%' }}
+            className="z-0"
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {filteredIssues.map((issue) => (
+              <Marker
+                key={issue.id}
+                position={issue.coordinates}
+                icon={createCategoryIcon(issue.category)}
+              >
+                <Popup>
+                  <div className="p-2 min-w-[200px]">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-lg">{categoryConfig[issue.category].icon}</span>
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-secondary">
+                        {categoryConfig[issue.category].label}
+                      </span>
+                    </div>
+                    <h4 className="font-semibold text-sm mb-1">{issue.title}</h4>
+                    <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                      {issue.description}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {issue.location.split(',')[0]}
+                      </span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        issue.status === 'resolved' ? 'bg-success/20 text-success' :
+                        issue.status === 'review' ? 'bg-info/20 text-info' :
+                        'bg-warning/20 text-warning'
+                      }`}>
+                        {statusConfig[issue.status].label}
+                      </span>
+                    </div>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
 
-            {/* Issue Cards Grid */}
-            <div className="relative z-10 p-6 pt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredIssues.slice(0, 6).map((issue, index) => (
-                <motion.div
-                  key={issue.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Card glass className="hover-lift cursor-pointer group">
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0 ${
-                          issue.category === 'road' ? 'bg-orange-500/20' :
-                          issue.category === 'garbage' ? 'bg-emerald-500/20' :
-                          issue.category === 'water' ? 'bg-blue-500/20' :
-                          issue.category === 'electricity' ? 'bg-yellow-500/20' :
-                          'bg-red-500/20'
-                        }`}>
-                          {categoryConfig[issue.category].icon}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <h4 className="font-medium text-sm leading-tight group-hover:text-primary transition-colors line-clamp-1">
-                              {issue.title}
-                            </h4>
-                            <Badge variant={issue.status} className="shrink-0 text-xs">
-                              {statusConfig[issue.status].label}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {issue.location}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Interactive Map Link */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
-              <Button variant="hero" size="lg" className="gap-2 shadow-xl">
-                <MapPin className="w-5 h-5" />
-                View Interactive Map
-                <ExternalLink className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* Kathmandu Coordinates Label */}
-            <div className="absolute bottom-4 right-4 z-10 text-xs text-muted-foreground font-mono">
-              27.7172°N, 85.3240°E
-            </div>
+          {/* Coordinates Label */}
+          <div className="absolute bottom-4 right-4 z-[1000] text-xs text-muted-foreground font-mono bg-background/80 px-2 py-1 rounded">
+            27.7172°N, 85.3240°E
           </div>
         </motion.div>
       </div>
